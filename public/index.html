@@ -1,1 +1,572 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>DixzzXD • Loadtest</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Socket.io & Chart.js -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        }
 
+        body {
+            background: #0c0f15;
+            padding: 16px;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background: rgba(20, 28, 40, 0.9);
+            border-radius: 24px;
+            padding: 18px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .header h1 i {
+            color: #ffd700;
+            margin-right: 4px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+        }
+
+        .dot.off {
+            background: #f44336;
+        }
+
+        .ram-card {
+            width: 100%;
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #9aaec9;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .progress-header i {
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .progress-bar-bg {
+            background: rgba(255,255,255,0.1);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.2s linear;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .progress-value {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 0.9rem;
+        }
+
+        .percent {
+            font-weight: 600;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #8a9fc0;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .chart-header span i {
+            color: #ffd700;
+            margin-right: 4px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            color: #b0c0d0;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .rps-color { background: #ffd700; }
+        .ram-color { background: #3b82f6; }
+
+        canvas {
+            width: 100% !important;
+            height: 180px !important;
+        }
+
+        .ip-box {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 12px;
+            font-family: monospace;
+            word-break: break-all;
+            color: #4caf50;
+            margin: 8px 0;
+            font-size: 1rem;
+            border: 1px solid #4caf5033;
+        }
+
+        .url-box {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 12px;
+            font-family: monospace;
+            word-break: break-all;
+            color: #ffd700;
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .btn:active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-danger {
+            background: rgba(200, 70, 70, 0.2);
+            color: #ffb3b3;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #5f7a9c;
+        }
+
+        .badge {
+            background: #ffd70020;
+            color: #ffd700;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            border: 1px solid #ffd70040;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="card header">
+            <h1><i class="bi bi-lightning-charge-fill"></i> DixzzXD</h1>
+            <div class="status">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusText">online</span>
+            </div>
+        </div>
+
+        <!-- Your IP -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span><i class="bi bi-person-circle"></i> Your IP Address</span>
+                <span class="badge" id="maxRpsBadge">Max RPS: 0</span>
+            </div>
+            <div class="ip-box" id="yourIp">Loading...</div>
+        </div>
+
+        <!-- RAM ONLY -->
+        <div class="card ram-card">
+            <div class="progress-header">
+                <i class="bi bi-memory"></i> RAM Usage
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-fill" id="ramProgress" style="width: 0%"></div>
+            </div>
+            <div class="progress-value">
+                <span id="ramFooter">0/0 GB</span>
+                <span class="percent" id="ramPercent">0%</span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label"><i class="bi bi-box"></i> TOTAL</div>
+                    <div class="stat-number" id="totalRequests">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label"><i class="bi bi-globe"></i> UNIQUE</div>
+                    <div class="stat-number" id="uniqueIPs">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label"><i class="bi bi-speedometer2"></i> RPS</div>
+                    <div class="stat-number" id="rps">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label"><i class="bi bi-clock"></i> UPTIME</div>
+                    <div class="stat-number" id="uptime">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card">
+            <div class="chart-header">
+                <span><i class="bi bi-graph-up"></i> Live Traffic (60 detik)</span>
+                <div class="legend">
+                    <div class="legend-item"><span class="legend-color rps-color"></span> RPS</div>
+                    <div class="legend-item"><span class="legend-color ram-color"></span> RAM</div>
+                </div>
+            </div>
+            <canvas id="mainChart"></canvas>
+        </div>
+
+        <!-- Target URL -->
+        <div class="card">
+            <div style="margin-bottom: 8px;"><i class="bi bi-crosshair"></i> Target URL</div>
+            <div class="url-box" id="targetUrl">loading...</div>
+            <div class="action-buttons">
+                <button class="btn" onclick="copyUrl()">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+                <button class="btn btn-danger" onclick="resetStats()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <i class="bi bi-lightning-charge-fill"></i> DixzzXD · loadtest monitor
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let chart;
+        
+        let timeLabels = [];
+        let rpsData = [];
+        let ramData = [];
+
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'RPS',
+                            data: rpsData,
+                            borderColor: '#ffd700',
+                            backgroundColor: 'rgba(255,215,0,0.05)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0,
+                            fill: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'RAM',
+                            data: ramData,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59,130,246,0.05)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0,
+                            fill: true,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 0 },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#ffd700' }
+                        },
+                        y1: {
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#60a5fa', stepSize: 20 }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#a0b0c0', maxTicksLimit: 6 }
+                        }
+                    },
+                    elements: { line: { tension: 0 } }
+                }
+            });
+        }
+
+        function addDataPoint(time, rps, ram) {
+            timeLabels.push(time);
+            rpsData.push(rps);
+            ramData.push(ram);
+            
+            if (timeLabels.length > 60) {
+                timeLabels.shift();
+                rpsData.shift();
+                ramData.shift();
+            }
+            
+            if (chart) {
+                chart.data.labels = timeLabels;
+                chart.data.datasets[0].data = rpsData;
+                chart.data.datasets[1].data = ramData;
+                chart.update();
+            }
+        }
+
+        function resetChart() {
+            timeLabels = [];
+            rpsData = [];
+            ramData = [];
+            
+            if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
+                chart.update();
+            }
+        }
+
+        // FETCH IP
+        fetch('/myip')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('yourIp').textContent = data.ip;
+            })
+            .catch(() => {
+                document.getElementById('yourIp').textContent = '127.0.0.1';
+            });
+
+        socket.on('connect', () => {
+            document.getElementById('statusDot').className = 'dot';
+            document.getElementById('statusText').textContent = 'online';
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('statusDot').className = 'dot off';
+            document.getElementById('statusText').textContent = 'offline';
+        });
+
+        socket.on('stats', (data) => {
+            document.getElementById('totalRequests').textContent = data.total.toLocaleString();
+            document.getElementById('uniqueIPs').textContent = data.uniqueIPs.toLocaleString();
+            document.getElementById('rps').textContent = data.rps.toLocaleString();
+            document.getElementById('uptime').textContent = data.uptime.toLocaleString();
+            
+            // FIX: MAX RPS pake data.maxRps
+            document.getElementById('maxRpsBadge').textContent = `Max RPS: ${data.maxRps || 0}`;
+
+            if (data.serverStats) {
+                const ram = parseFloat(data.serverStats.ram) || 0;
+                
+                document.getElementById('ramProgress').style.width = ram + '%';
+                document.getElementById('ramPercent').textContent = ram + '%';
+                document.getElementById('ramFooter').textContent = `${data.serverStats.freeRam}/${data.serverStats.totalRam} GB`;
+            }
+
+            if (data.history && data.history.length > 0) {
+                const last = data.history[data.history.length - 1];
+                addDataPoint(
+                    last.time,
+                    last.count,
+                    parseFloat(last.ram) || 0
+                );
+            }
+        });
+
+        // Initial fetch stats
+        fetch('/stats')
+            .then(res => res.json())
+            .then(data => {
+                if (data.serverStats) {
+                    document.getElementById('ramProgress').style.width = data.serverStats.ram + '%';
+                    document.getElementById('ramPercent').textContent = data.serverStats.ram + '%';
+                    document.getElementById('ramFooter').textContent = `${data.serverStats.freeRam}/${data.serverStats.totalRam} GB`;
+                    
+                    // FIX: MAX RPS dari data
+                    document.getElementById('maxRpsBadge').textContent = `Max RPS: ${data.maxRps || 0}`;
+                }
+                
+                if (data.history && data.history.length > 0) {
+                    timeLabels = [];
+                    rpsData = [];
+                    ramData = [];
+                    
+                    const latestHistory = data.history.slice(-60);
+                    latestHistory.forEach(item => {
+                        timeLabels.push(item.time);
+                        rpsData.push(item.count);
+                        ramData.push(parseFloat(item.ram) || 0);
+                    });
+                    
+                    if (chart) {
+                        chart.data.labels = timeLabels;
+                        chart.data.datasets[0].data = rpsData;
+                        chart.data.datasets[1].data = ramData;
+                        chart.update();
+                    }
+                }
+            });
+
+        function setTargetUrl() {
+            document.getElementById('targetUrl').textContent = window.location.origin + '/attack';
+        }
+
+        window.copyUrl = function() {
+            navigator.clipboard.writeText(document.getElementById('targetUrl').textContent);
+            const btn = document.querySelector('.btn');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+            setTimeout(() => btn.innerHTML = original, 1000);
+        };
+
+        window.resetStats = function() {
+            if (confirm('Reset stats?')) {
+                fetch('/reset', { method: 'POST' })
+                    .then(() => {
+                        // Reset chart
+                        resetChart();
+                        
+                        // Reset angka
+                        document.getElementById('totalRequests').textContent = '0';
+                        document.getElementById('uniqueIPs').textContent = '0';
+                        document.getElementById('rps').textContent = '0';
+                        document.getElementById('uptime').textContent = '0';
+                        document.getElementById('maxRpsBadge').textContent = 'Max RPS: 0';
+                        
+                        // Reset RAM
+                        document.getElementById('ramProgress').style.width = '0%';
+                        document.getElementById('ramPercent').textContent = '0%';
+                        document.getElementById('ramFooter').textContent = '0/0 GB';
+                    });
+            }
+        };
+
+        window.onload = () => {
+            initChart();
+            setTargetUrl();
+            setInterval(setTargetUrl, 1000);
+            
+            fetch('/myip')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('yourIp').textContent = data.ip;
+                })
+                .catch(() => {
+                    document.getElementById('yourIp').textContent = '127.0.0.1';
+                });
+        };
+    </script>
+</body>
+</html>
