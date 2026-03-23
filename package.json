@@ -1,0 +1,33 @@
+{
+  "name": "dixzzxd-loadtest",
+  "version": "2.0.0",
+  "description": "Loadtest monitor dengan CPU, RAM, RPS real-time - by DixzzXD",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "watch": "nodemon server.js"
+  },
+  "keywords": [
+    "loadtest",
+    "ddos",
+    "monitor",
+    "realtime",
+    "socket.io",
+    "chart.js",
+    "dixzzxd"
+  ],
+  "author": "DixzzXD",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "os-utils": "^0.0.14"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
